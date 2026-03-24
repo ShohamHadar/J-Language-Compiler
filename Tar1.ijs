@@ -2,8 +2,8 @@ load 'files'
 load 'dir'
 
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\StackArithmetic\StackTest\*.vm'
-outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\StackArithmetic\StackTest\StackTest.asm'
+searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\*.vm'
+outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\PointerTest.asm'
 '' fwrite outputFile
 
 vmFiles =: 1 dir searchPattern
@@ -25,6 +25,30 @@ translateComp =: 3 : 0
   asm =. asm , (' @SP') ; (' A=M-1') ; (' M=0') ; (' @' , label , '_END') ; (' 0;JMP')
   asm =. asm , ('(' , label , '_TRUE)') ; (' @SP') ; (' A=M-1') ; (' M=-1')
   asm =. asm , < '(' , label , '_END)'
+)
+
+
+
+translatePushPointer =: 3 : 0
+  index =. ". , > y
+  reg =. > (index = 0) { 'THAT' ; 'THIS'
+  
+  NB. אנו מחברים את ה-@ לרגיסטר ואז אורזים הכל בקופסה
+  (' @' , reg) ; ' D=M' ; ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
+)
+
+
+translatePopPointer =: 3 : 0
+  NB. המרה למספר: יוצר וקטור מהקלט וממיר לערך מספרי
+  index =. ". , > y
+  
+  NB. כתיבה אלטרנטיבית וחסינה לתנאי:
+  NB. אם 0 שווה לאינדקס, בחר 'THIS', אחרת בחר 'THAT'
+  reg =. > (index = 0) { 'THAT' ; 'THIS'
+  
+  echo 'Index: ' ; index ; ' Selected: ' ; reg
+  NB. כאן התיקון הקריטי: אורזים את השורה שכוללת את reg לפני הקישור
+  ' @SP' ; ' AM=M-1' ; ' D=M' ; (' @' , reg) ; ' M=D'
 )
 
 NB. פונקציה לתרגום push constant x
@@ -115,6 +139,8 @@ processFiles =: 3 : 0
         
         if. segment -: 'constant' do.
           asmLines =. translatePushConstant index
+        elseif. segment -: 'pointer' do.  NB. הוספה עבור pointer
+          asmLines =. translatePushPointer index
         elseif. segment e. 'local';'argument';'this';'that' do.
           NB. מיפוי שם המקטע לשם הרגיסטר
           regName =. (> segment e. 'local';'argument';'this';'that') { 'LCL';'ARG';'THIS';'THAT'
@@ -126,7 +152,9 @@ processFiles =: 3 : 0
         segment =. > 1 { words
         index =. > 2 { words
         
-        if. segment e. 'local';'argument';'this';'that' do.
+        if. segment -: 'pointer' do.      NB. הוספה עבור pointer
+          asmLines =. translatePopPointer index
+        elseif. segment e. 'local';'argument';'this';'that' do.
           regName =. (> segment e. 'local';'argument';'this';'that') { 'LCL';'ARG';'THIS';'THAT'
           asmLines =. translatePopSegment regName ; index
         end.
