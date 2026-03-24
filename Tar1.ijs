@@ -2,11 +2,30 @@ load 'files'
 load 'dir'
 
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:/Users/User/nand2tetris/nand2tetris/projects/07/StackArithmetic/SimpleAdd/*.vm'
-outputFile =: 'C:/Users/User/nand2tetris/nand2tetris/projects/07/StackArithmetic/SimpleAdd/SimpleAdd.asm'
+searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\StackArithmetic\StackTest\*.vm'
+outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\StackArithmetic\StackTest\StackTest.asm'
 '' fwrite outputFile
 
 vmFiles =: 1 dir searchPattern
+labelCount =: 0
+
+
+NB. פונקציה גנרית להשוואה (eq, gt, lt)
+NB. type - סוג הקפיצה (JEQ, JGT, JLT)
+translateComp =: 3 : 0
+  type =. y
+  label =. 'LABEL_' , ": labelCount
+  labelCount =: labelCount + 1
+  
+  NB. יצירת רשימה ראשונית
+  asm =. (' @SP') ; (' AM=M-1') ; (' D=M') ; (' A=A-1') ; (' D=M-D')
+  
+  NB. הוספת שורות חדשות לרשימת הקופסאות
+  asm =. asm , (' @' , label , '_TRUE') ; (' D;' , type)
+  asm =. asm , (' @SP') ; (' A=M-1') ; (' M=0') ; (' @' , label , '_END') ; (' 0;JMP')
+  asm =. asm , ('(' , label , '_TRUE)') ; (' @SP') ; (' A=M-1') ; (' M=-1')
+  asm =. asm , < '(' , label , '_END)'
+)
 
 NB. פונקציה לתרגום push constant x
 NB. מקבלת את הערך x (כמחרוזת) ומחזירה רשימת שורות Assembly 
@@ -121,11 +140,16 @@ processFiles =: 3 : 0
       NB. 3. זיהוי פקודות אריתמטיות אונאריות (פועלות על איבר אחד) [cite: 89]
       elseif. cmd -: 'neg' do. asmLines =. translateNeg ''
       elseif. cmd -: 'not' do. asmLines =. translateNot ''
+
+      elseif. cmd -: 'eq'  do. asmLines =. translateComp 'JEQ'
+      elseif. cmd -: 'gt'  do. asmLines =. translateComp 'JGT'
+      elseif. cmd -: 'lt'  do. asmLines =. translateComp 'JLT'
       end.
 
      if. 0 < # asmLines do.
         ('// ' , lineStr , LF) fappend outputFile
-        (; asmLines ,each <LF) fappend outputFile
+       NB. (; asmLines ,each <LF) fappend outputFile
+        ( ; asmLines ,&.> <LF) fappend outputFile
       end.
     end.
   end.
