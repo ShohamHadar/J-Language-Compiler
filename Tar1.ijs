@@ -2,8 +2,8 @@ load 'files'
 load 'dir'
 
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\*.vm'
-outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\PointerTest.asm'
+searchPattern =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\7\MemoryAccess\StaticTest\*.vm'
+outputFile =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\7\MemoryAccess\StaticTest\StaticTest.asm'
 '' fwrite outputFile
 
 vmFiles =: 1 dir searchPattern
@@ -28,27 +28,47 @@ translateComp =: 3 : 0
 )
 
 
-
-translatePushPointer =: 3 : 0
-  index =. ". , > y
-  reg =. > (index = 0) { 'THAT' ; 'THIS'
-  
-  NB. אנו מחברים את ה-@ לרגיסטר ואז אורזים הכל בקופסה
-  (' @' , reg) ; ' D=M' ; ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
+translatePushDirect =: 3 : 0
+  NB. y היא הכתובת הישירה ב-RAM (למשל "5", "6" וכו')
+  addr =. y
+  (' @' , addr) ; (' D=M') ; (' @SP') ; (' A=M') ; (' M=D') ; (' @SP') ; < ' M=M+1'
 )
 
+translatePopDirect =: 3 : 0
+  NB. y היא הכתובת הישירה ב-RAM
+  addr =. y
+  (' @SP') ; (' AM=M-1') ; (' D=M') ; (' @' , addr) ; < ' M=D'
+)
+translatePushPointer =: 3 : 0
+  addr =. ": 3 + ". y  NB. הופך '0' ל-3 ו-'1' ל-4
+  (' @' , addr) ; ' D=M' ; ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
+)
 
 translatePopPointer =: 3 : 0
-  NB. המרה למספר: יוצר וקטור מהקלט וממיר לערך מספרי
-  index =. ". , > y
+  addr =. ": 3 + ". y
+  ' @SP' ; ' AM=M-1' ; ' D=M' ; (' @' , addr) ; ' M=D'
+)
+
+translatePushSegment =: 3 : 0
+  'reg index' =. y
+  NB. 1. גישה לערך (base + index) ושמירה ב-D
+  asm =. (' @' , index) ; (' D=A') ; (' @' , reg) ; (' A=D+M') ; < ' D=M'
   
-  NB. כתיבה אלטרנטיבית וחסינה לתנאי:
-  NB. אם 0 שווה לאינדקס, בחר 'THIS', אחרת בחר 'THAT'
-  reg =. > (index = 0) { 'THAT' ; 'THIS'
+  NB. 2. דחיפה למחסנית
+  asm =. asm , (' @SP') ; (' A=M') ; (' M=D') ; (' @SP') ; < ' M=M+1'
+  asm
+)
+translatePopSegment =: 3 : 0
+  'reg index' =. y
+  NB. 1. חישוב הכתובת (base + index) ושמירה ב-R13
+  asm =. (' @' , index) ; (' D=A') ; (' @' , reg) ; (' D=D+M') ; (' @R13') ; < ' M=D'
   
-  echo 'Index: ' ; index ; ' Selected: ' ; reg
-  NB. כאן התיקון הקריטי: אורזים את השורה שכוללת את reg לפני הקישור
-  ' @SP' ; ' AM=M-1' ; ' D=M' ; (' @' , reg) ; ' M=D'
+  NB. 2. Pop מהמחסנית ל-D
+  asm =. asm , (' @SP') ; (' AM=M-1') ; < ' D=M'
+  
+  NB. 3. העברת D לכתובת ששמורה ב-R13
+  asm =. asm , (' @R13') ; (' A=M') ; < ' M=D'
+  asm
 )
 
 NB. פונקציה לתרגום push constant x
@@ -59,26 +79,8 @@ translatePushConstant =: 3 : 0
   (' @', val) ; ' D=A' ; ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
 )
 
-NB. x - שם המקטע (LCL, ARG וכו'), y - האינדקס
-translatePushSegment =: 3 : 0
-  'segment index' =. y
-  NB. 1. חישוב הכתובת: addr = segmentPointer + index
-  (' @' , index) ; ' D=A' ; (' @' , segment) ; ' A=M+D' ; 
-  NB. 2. לקיחת הערך מהכתובת ושמירה ב-D
-  ' D=M' ; 
-  NB. 3. דחיפה למחסנית (כמו ב-push constant)
-  ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
-)
 
-translatePopSegment =: 3 : 0
-  'segment index' =. y
-  NB. 1. חישוב כתובת יעד ושמירה ב-R13: R13 = segmentPointer + index
-  (' @' , index) ; ' D=A' ; (' @' , segment) ; ' D=M+D' ; ' @R13' ; ' M=D' ;
-  NB. 2. הוצאת ערך מהמחסנית ל-D
-  ' @SP' ; ' AM=M-1' ; ' D=M' ;
-  NB. 3. כתיבת הערך לכתובת ששמורה ב-R13
-  ' @R13' ; ' A=M' ; ' M=D'
-)
+
 
 NB. פונקציה לתרגום add
 NB. מבצעת pop לשני איברים ומחזירה את הסכום [cite: 86, 88]
@@ -131,32 +133,51 @@ processFiles =: 3 : 0
       words =. cut lineStr
       cmd =. > 0 { words
       asmLines =. ''  NB. משתנה שיחזיק את תוצאת התרגום
-      
-      NB. --- זיהוי פקודות PUSH ---
+NB. --- זיהוי פקודות PUSH ---
       if. cmd -: 'push' do.
         segment =. > 1 { words
         index =. > 2 { words
         
         if. segment -: 'constant' do.
           asmLines =. translatePushConstant index
-        elseif. segment -: 'pointer' do.  NB. הוספה עבור pointer
+        elseif. segment -: 'pointer' do.
           asmLines =. translatePushPointer index
-        elseif. segment e. 'local';'argument';'this';'that' do.
-          NB. מיפוי שם המקטע לשם הרגיסטר
-          regName =. (> segment e. 'local';'argument';'this';'that') { 'LCL';'ARG';'THIS';'THAT'
-          asmLines =. translatePushSegment regName ; index
+        elseif. segment -: 'temp' do.
+          targetAddr =. 5 + ". index
+          asmLines =. translatePushDirect ": targetAddr
+        elseif. segment -: 'static' do.
+          NB. טיפול בסטטי: @FileName.Index
+          asmLines =. (' @' , fileName , '.' , index) ; ' D=M' ; ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
+        elseif. segment -: 'local' do.
+          asmLines =. translatePushSegment 'LCL' ; index
+        elseif. segment -: 'argument' do.
+          asmLines =. translatePushSegment 'ARG' ; index
+        elseif. segment -: 'this' do.
+          asmLines =. translatePushSegment 'THIS' ; index
+        elseif. segment -: 'that' do.
+          asmLines =. translatePushSegment 'THAT' ; index
         end.
-
-      NB. --- זיהוי פקודות POP ---
+NB. --- זיהוי פקודות POP ---
       elseif. cmd -: 'pop' do.
         segment =. > 1 { words
         index =. > 2 { words
         
-        if. segment -: 'pointer' do.      NB. הוספה עבור pointer
+        if. segment -: 'pointer' do.
           asmLines =. translatePopPointer index
-        elseif. segment e. 'local';'argument';'this';'that' do.
-          regName =. (> segment e. 'local';'argument';'this';'that') { 'LCL';'ARG';'THIS';'THAT'
-          asmLines =. translatePopSegment regName ; index
+        elseif. segment -: 'temp' do.
+          targetAddr =. 5 + ". index
+          asmLines =. translatePopDirect ": targetAddr
+        elseif. segment -: 'static' do.
+          NB. טיפול בסטטי: מוציאים מהמחסנית ושומרים ב-@FileName.Index
+          asmLines =. ' @SP' ; ' AM=M-1' ; ' D=M' ; (' @' , fileName , '.' , index) ; ' M=D'
+        elseif. segment -: 'local' do.
+          asmLines =. translatePopSegment 'LCL' ; index
+        elseif. segment -: 'argument' do.
+          asmLines =. translatePopSegment 'ARG' ; index
+        elseif. segment -: 'this' do.
+          asmLines =. translatePopSegment 'THIS' ; index
+        elseif. segment -: 'that' do.
+          asmLines =. translatePopSegment 'THAT' ; index
         end.
 
       NB. 2. זיהוי פקודות אריתמטיות בינאריות (דורשות 2 איברים מהמחסנית) [cite: 88]
@@ -182,6 +203,8 @@ processFiles =: 3 : 0
     end.
   end.
   echo 'Translation Complete!'
+  
+
 )
 NB. הרצת התהליך
 processFiles vmFiles
