@@ -2,8 +2,8 @@ load 'files'
 load 'dir'
 
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\7\MemoryAccess\StaticTest\*.vm'
-outputFile =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\7\MemoryAccess\StaticTest\StaticTest.asm'
+searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\StaticTest\*.vm'
+outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\StaticTest\StaticTest.asm'
 '' fwrite outputFile
 
 vmFiles =: 1 dir searchPattern
@@ -81,7 +81,6 @@ translatePushConstant =: 3 : 0
 
 
 
-
 NB. פונקציה לתרגום add
 NB. מבצעת pop לשני איברים ומחזירה את הסכום [cite: 86, 88]
 translateAdd =: 3 : 0
@@ -112,7 +111,6 @@ translateNot =: 3 : 0
   ' @SP' ; ' A=M-1' ; ' M=!M'
 )
 
-NB. ... (הגדרות הנתיבים והפונקציות translate נשארות כפי שהן) ...
 
 processFiles =: 3 : 0
   for_file_path. y do.
