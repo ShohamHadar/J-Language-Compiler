@@ -1,14 +1,17 @@
 NB.main.ijs file
 load 'files'
 load 'dir'
-require 'C:\Users\User\j9.6-user\temp\arithmetic.ijs'
-require 'C:\Users\User\j9.6-user\temp\memory.ijs'
+NB.require 'C:\Users\User\j9.6-user\temp\Tar1_arithmetic.ijs'
+NB.require 'C:\Users\User\j9.6-user\temp\Tar1_memory.ijs'
+load 'C:\Users\User\j9.6-user\temp\Tar1_arithmetic.ijs'
+load 'C:\Users\User\j9.6-user\temp\Tar1_memory.ijs'
 
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
 searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\*.vm'
 outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\PointerTest.asm'
 '' fwrite outputFile
 
+NB.מחזיר רשימה של שמות הקבצים הרלוונטיים בתיקיה
 vmFiles =: 1 dir searchPattern
 labelCount =: 0
 
