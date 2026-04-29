@@ -1,18 +1,22 @@
 NB.main.ijs file
 load 'files'
 load 'dir'
-require 'C:\Users\User\j9.6-user\temp\arithmetic.ijs'
-require 'C:\Users\User\j9.6-user\temp\memory.ijs'
+load 'C:\Users\User\j9.6-user\temp\Tar1_arithmetic.ijs'
+load 'C:\Users\User\j9.6-user\temp\Tar1_memory.ijs'
 
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\*.vm'
-outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\07\MemoryAccess\PointerTest\PointerTest.asm'
+searchPattern =: 'C:\Users\User\Desktop\לימודים\עקרונות שפות תכנה\תרגול\targil1\*.vm'
+outputFile =: 'C:\Users\User\Desktop\לימודים\עקרונות שפות תכנה\תרגול\targil1\helloWorld.asm'
 '' fwrite outputFile
 
+NB.מחזיר רשימה של שמות הקבצים הרלוונטיים בתיקיה
 vmFiles =: 1 dir searchPattern
 labelCount =: 0
 
+
 processFiles =: 3 : 0
+
+  NB. בכל סיבוב האיבר הנוכחי נקרא file_path
   for_file_path. y do.
     item =. > file_path
     
@@ -22,15 +26,22 @@ processFiles =: 3 : 0
     fileName =. (end - start) {. start }. item
     echo 'Processing: ', fileName
     
+    NB. מפרק את האייטם הנוכחי לשורות שורות כדי שנוכל לעבוד עליהן
     lines =. cutLF freads item
-    
-    for_line. lines do.
-      lineStr =. deb > line
-      if. (0 = # lineStr) +. ('//' -: 2 {. lineStr) do. continue. end.
-      
-      words =. cut lineStr
-      cmd =. > 0 { words
-      asmLines =. ''  NB. משתנה שיחזיק את תוצאת התרגום
+
+  for_line. lines do.
+     NB. lineStr =. deb > line
+     lineRaw =. > line
+     NB. 1. החלפת כל הטאבים (Tab) ברווחים רגילים
+     lineNoTabs =. lineRaw rplc (9{a.) ; ' '
+     NB. 2. עכשיו deb יעבוד מעולה וינקה את הרווחים מהקצוות
+     lineStr =. deb lineNoTabs
+     if. (0 = # lineStr) +. ('//' -: 2 {. lineStr) do. continue. end.
+     NB. 3. פירוק חכם למילים - מתעלם מרווחים כפולים וטאבים
+     words =. ([: -.&(<'') cut) lineStr
+     words =. cut lineStr
+     cmd =. > 0 { words
+     asmLines =. ''  NB. משתנה שיחזיק את תוצאת התרגום
 
 NB. --- זיהוי פקודות PUSH ---
       if. cmd -: 'push' do.
@@ -42,7 +53,7 @@ NB. --- זיהוי פקודות PUSH ---
         elseif. segment -: 'pointer' do.
           asmLines =. translatePushPointer index
         elseif. segment -: 'temp' do.
-          targetAddr =. 5 + ". index
+          targetAddr =. 5 + ". index  NB. מקטע temp ב-Hack מתחיל תמיד בכתובת 5.
           asmLines =. translatePushDirect ": targetAddr
         elseif. segment -: 'static' do.
           NB. טיפול בסטטי: @FileName.Index
@@ -92,8 +103,33 @@ NB. --- זיהוי פקודות POP ---
       elseif. cmd -: 'eq'  do. asmLines =. translateComp 'JEQ'
       elseif. cmd -: 'gt'  do. asmLines =. translateComp 'JGT'
       elseif. cmd -: 'lt'  do. asmLines =. translateComp 'JLT'
+
+
+NB. תרגיל 2
+      elseif. cmd -: 'label' do.
+        labelName =. > 1 { words
+        asmLines =. translateLabel fileName ; labelName
+      elseif. cmd -: 'goto' do.
+        labelName =. > 1 { words
+        asmLines =. translateGoto fileName ; labelName
+      elseif. cmd -: 'if-goto' do.
+        labelName =. > 1 { words
+        asmLines =. translateIfGoto fileName ; labelName
+
+      elseif. cmd -: 'function' do.
+        fName =. > 1 { words  NB. שם הפונקציה 
+        kVars =. > 2 { words  NB. מספר המשתנים 
+        asmLines =. translateFunction fName ; kVars 
+      elseif. cmd -: 'call' do.
+        fName =. > 1 { words
+        nArgs =. > 2 { words
+        asmLines =. translateCall fName ; nArgs
+      elseif. cmd -: 'return' do.
+        asmLines =. translateReturn ''
+
       end.
 
+     NB. אם הגענו לשורת קוד שהיא לא הערה נכתוב אותה לקובץ
      if. 0 < # asmLines do.
         ('// ' , lineStr , LF) fappend outputFile
         ( ; asmLines ,&.> <LF) fappend outputFile

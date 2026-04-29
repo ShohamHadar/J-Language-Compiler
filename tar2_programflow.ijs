@@ -1,4 +1,3 @@
-
 NB.תרגיל 2
 NB. תרגום פקודת label
 translateLabel =: 3 : 0
@@ -18,6 +17,3 @@ translateIfGoto =: 3 : 0
   NB. מוציאים את הערך מהמחסנית, אם הוא לא 0 קופצים
   (' @SP') ; (' AM=M-1') ; (' D=M') ; (' @', fileName, '.', labelName) ; < ' D;JNE'
 )
-
-
-
