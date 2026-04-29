@@ -1,4 +1,4 @@
-NB.תרגיל 2
+NB.progremflaw
 NB. תרגום פקודת label
 translateLabel =: 3 : 0
   'fileName labelName' =. y

@@ -1,17 +1,20 @@
 NB.main.ijs file
 load 'files'
 load 'dir'
+
 load 'C:\Users\User\j9.6-user\temp\Tar1_arithmetic.ijs'
 load 'C:\Users\User\j9.6-user\temp\Tar1_memory.ijs'
-
+load 'C:\Users\User\j9.6-user\temp\tar2_programflow.ijs'
+load 'C:\Users\User\j9.6-user\temp\tar2_functions.ijs'
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:\Users\User\Desktop\לימודים\עקרונות שפות תכנה\תרגול\targil1\*.vm'
-outputFile =: 'C:\Users\User\Desktop\לימודים\עקרונות שפות תכנה\תרגול\targil1\helloWorld.asm'
+searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\08\FunctionCalls\NestedCall\*.vm'
+outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\08\FunctionCalls\NestedCall\NestedCall.asm'
 '' fwrite outputFile
 
 NB.מחזיר רשימה של שמות הקבצים הרלוונטיים בתיקיה
 vmFiles =: 1 dir searchPattern
 labelCount =: 0
+callCount =: 0
 
 
 processFiles =: 3 : 0
@@ -134,10 +137,25 @@ NB. תרגיל 2
         ('// ' , lineStr , LF) fappend outputFile
         ( ; asmLines ,&.> <LF) fappend outputFile
       end.
-    end.
   end.
-  echo 'Translation Complete!'  
+end.
+  echo 'Translation Complete!' 
+
+)
+
+NB.לתרגיל 2
+runTranslation =: 3 : 0
+  if. (# vmFiles) > 1 do. 
+      echo 'Writing Bootstrap Code'
+      asmInit =. translateInit ''
+      ('// --- BOOTSTRAP ---' , LF) fappend outputFile
+      ( ; asmInit ,&.> <LF) fappend outputFile
+  else.
+      echo 'Single file detected: Skipping Bootstrap.' 
+  end.
+
+  processFiles vmFiles
 )
 
 NB. הרצת התהליך
-processFiles vmFiles
+runTranslation ''

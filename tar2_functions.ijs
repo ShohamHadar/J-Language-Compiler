@@ -71,3 +71,15 @@ translateReturn =: 3 : 0
   asm =. asm , (' @R15') ; < ' A=M;JMP'
   asm
 )
+
+
+NB. 
+translateInit =: 3 : 0
+  NB. 1. אתחול ה-Stack Pointer ל-256
+  asm =. (' @256') ; (' D=A') ; (' @SP') ; < ' M=D'
+  
+  NB. 2. קריאה ל-Sys.init 0. 
+  NB. שימי לב: זה יוסיף אוטומטית את ה-push-ים וה-jump
+  asm =. asm , translateCall 'Sys.init' ; '0'
+  asm
+)
