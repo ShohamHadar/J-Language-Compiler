@@ -46,3 +46,14 @@ translateComp =: 3 : 0
   asm =. asm , ('(' , label , '_TRUE)') ; (' @SP') ; (' A=M-1') ; (' M=-1')
   asm =. asm , < '(' , label , '_END)'
 )
+
+
+NB. תרגולללללל
+NB. פונקציה המתרגמת את פקודת depth ל-Assembly של Hack
+  NB. 1. חישוב המרחק: D = SP - 256
+  NB. 2. הכנסת הערך D לכתובת ש-SP מצביע עליה
+  NB. 3. קידום ה-SP ב-1
+translateDepth =: 3 : 0
+
+  ' @SP' ; ' D=M' ; ' @256' ; ' D=D-A' ; ' @SP' ; ' A=M' ; ' M=D' ; ' @SP' ; ' M=M+1'
+)
