@@ -1,7 +1,7 @@
 /** Hippo class - לוגיקה זהה למחלקת Shirt עם 4 כיווני סיבוב */
 class Hippo {
     field int x, y, size, actions, rotation;
-
+    /** Constructor: Creates a new Hippo at (Ax, Ay) */
     constructor Hippo new(int Ax, int Ay, int Asize) {
         let x = Ax;
         let y = Ay;
@@ -11,36 +11,24 @@ class Hippo {
         do draw();
         return this;
     }
-
+    /** Draws the Hippo - Body is static, Head position depends on rotation */
     method void draw() {
         do Screen.setColor(true);
         do Screen.drawCircle(x, y, size);
-        if (rotation = 0) { // ימין
-            do Screen.drawRectangle(x + size - 5, y - (size/2), x + size + (size/2), y + (size/2));
-        }
-        if (rotation = 1) { // למטה
-            do Screen.drawRectangle(x - (size/2), y + size - 5, x + (size/2), y + size + (size/2));
-        }
-        if (rotation = 2) { // שמאל
-            do Screen.drawRectangle(x - size - (size/2), y - (size/2), x - size + 5, y + (size/2));
-        }
-        if (rotation = 3) { // למעלה
-            do Screen.drawRectangle(x - (size/2), y - size - (size/2), x + (size/2), y - size + 5);
-        }
-        return;
-    }
-
-    method void erase() {
-        do Screen.setColor(false);
-        do Screen.drawCircle(x, y, size);
-        // מוחק את הראש לפי המיקום הנוכחי
         if (rotation = 0) { do Screen.drawRectangle(x + size - 5, y - (size/2), x + size + (size/2), y + (size/2)); }
         if (rotation = 1) { do Screen.drawRectangle(x - (size/2), y + size - 5, x + (size/2), y + size + (size/2)); }
         if (rotation = 2) { do Screen.drawRectangle(x - size - (size/2), y - (size/2), x - size + 5, y + (size/2)); }
         if (rotation = 3) { do Screen.drawRectangle(x - (size/2), y - size - (size/2), x + (size/2), y - size + 5); }
         return;
     }
-
+/** Erases the Hippo by drawing it in white */
+    method void erase() {
+    do Screen.setColor(false); // צבע לבן
+    // מלבן לבן שמכסה את כל אזור ההיפופוטם
+    do Screen.drawRectangle(x - (size + 10), y - (size + 10), x + size + 10, y + size + 10);
+    return;
+}
+/** Handles interaction keys for movement, rotation, and size */
     method void handleKey(char key) {
         if (key = 131) { do move(0, -5); } // Up
         if (key = 133) { do move(0, 5); }  // Down
@@ -51,7 +39,7 @@ class Hippo {
         if (key = 88) { do changeSize(-2); } // X
         return;
     }
-
+/** Moves the Hippo while checking screen bounds */
     method void move(int dx, int dy) {
         var int margin;
         let margin = size + (size/2) + 5;
@@ -65,7 +53,7 @@ class Hippo {
         }
         return;
     }
-
+/** Rotates the head direction clockwise */
     method void rotate() {
         do erase();
         let rotation = rotation + 1;
@@ -74,16 +62,21 @@ class Hippo {
         do draw();
         return;
     }
-
-    method void changeSize(int delta) {
-        if (((size + delta) > 10) & ((size + delta) < 50)) {
-            do erase();
-            let size = size + delta;
-            let actions = actions + 1;
-            do draw();
-        }
+/** Scales the Hippo's size */
+method void changeSize(int delta) {
+    if (((size + delta) > 10) & ((size + delta) < 50)) {
+        do erase();             // 1. מוחקים את ההיפו הישן
+        let size = size + delta; // 2. משנים גודל
+        let actions = actions + 1;
+        do draw();              // 3. מציירים חדש
+    }
+    return;
+}
+/** Tracking: return action count for summary */
+    method int getActionCount() { return actions; }
+    /** Memory cleanup */
+    method void dispose() {
+        do Memory.deAlloc(this);
         return;
     }
-
-    method int getActionCount() { return actions; }
 }

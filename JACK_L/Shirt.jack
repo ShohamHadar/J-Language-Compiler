@@ -1,7 +1,7 @@
 /** Shirt class - מייצגת חולצה עם 4 כיווני סיבוב ולוגיקת תנועה מאובטחת */
 class Shirt {
     field int x, y, size, actions, rotation;
-
+/** Constructor: Initializes the shirt's position, size, and orientation */
     constructor Shirt new(int Ax, int Ay, int Asize) {
         let x = Ax;
         let y = Ay;
@@ -11,7 +11,7 @@ class Shirt {
         do draw();
         return this;
     }
-
+/** Draws the shirt based on its current rotation state */
     method void draw() {
         do Screen.setColor(true);
         if ((rotation = 0) | (rotation = 2)) {
@@ -37,18 +37,14 @@ class Shirt {
         }
         return;
     }
-
-    method void erase() {
-        do Screen.setColor(false);
-        // מחיקה לפי הלוגיקה של draw
-        if ((rotation = 0) | (rotation = 2)) {
-            do Screen.drawRectangle(x - (size/2), y - (size/2), x + size + (size/2), y + size + 20);
-        } else {
-            do Screen.drawRectangle(x - (size/2), y - (size/2), x + size + 20, y + size + (size/2));
-        }
+ /** Erases the shirt from the screen using the draw logic with white color */
+     method void erase() {
+        do Screen.setColor(false); // צבע לבן
+        // נצייר מלבן לבן שגדול קצת מהחולצה כדי לכסות את כל השרוולים
+        do Screen.drawRectangle(x - (size), y - (size), x + size + 20, y + size + 20);
         return;
     }
-
+/** Maps keyboard input to specific actions */
     method void handleKey(char key) {
         if (key = 131) { do move(0, -5); } // Up
         if (key = 133) { do move(0, 5); }  // Down
@@ -59,7 +55,7 @@ class Shirt {
         if (key = 88) { do changeSize(-2); } // X
         return;
     }
-
+/** Moves the object and keeps it within the screen boundaries */
     method void move(int dx, int dy) {
         var int margin;
         let margin = size + 15;
@@ -73,7 +69,7 @@ class Shirt {
         }
         return;
     }
-
+/** Cycles through the 4 rotation states */
     method void rotate() {
         do erase();
         let rotation = rotation + 1;
@@ -82,16 +78,21 @@ class Shirt {
         do draw();
         return;
     }
-
-    method void changeSize(int delta) {
-        if (((size + delta) > 10) & ((size + delta) < 50)) {
-            do erase();
-            let size = size + delta;
-            let actions = actions + 1;
-            do draw();
-        }
+/** Adjusts the size of the shirt within allowed limits */
+method void changeSize(int delta) {
+    if (((size + delta) > 10) & ((size + delta) < 60)) {
+        do erase();             // 1. קודם כל מוחקים את החולצה בגודל הנוכחי
+        let size = size + delta; // 2. רק עכשיו משנים את הגודל
+        let actions = actions + 1;
+        do draw();              // 3. מציירים את החולצה בגודל החדש
+    }
+    return;
+}
+/** Returns total actions performed on this object */
+    method int getActionCount() { return actions; }
+    /** Memory cleanup */
+    method void dispose() {
+        do Memory.deAlloc(this);
         return;
     }
-
-    method int getActionCount() { return actions; }
 }

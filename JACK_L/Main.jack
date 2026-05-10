@@ -1,4 +1,6 @@
-/** Main.jack - מנהל את בחירת האובייקט, הלולאה הראשית והצגת סיכום הפעולות */
+/**
+ * Main class for the Jack application.
+ */
 class Main {
     function void main() {
         var char key;
@@ -8,47 +10,62 @@ class Main {
         var int activeObject; // 1 = Shirt, 2 = Hippo
 
         let exit = false;
-        let activeObject = 1; // מתחילים עם החולצה
+        let activeObject = 1; 
         
-        // יצירת האובייקטים במיקומים שונים כדי שלא יעלו אחד על השני בהתחלה
+        // יצירת האובייקטים
         let myShirt = Shirt.new(256, 128, 40); 
         let myHippo = Hippo.new(100, 100, 20);
 
-        // הדפסת הוראות למשתמש
+        // ציור ראשוני
+        do Screen.clearScreen();
+        do myShirt.draw();
+        do myHippo.draw();
+        
+        // הדפסת תפריט ראשונית בשתי שורות
+        do Output.moveCursor(0,0);
         do Output.printString("S: Shirt, H: Hippo, R: Rotate");
         do Output.println();
         do Output.printString("Z/X: Change Size, Q: Quit");
-        do Output.println();
 
+        // לולאת המשחק הראשית
         while (~exit) {
             let key = Keyboard.keyPressed();
 
-            if (key = 81) { let exit = true; } // Q - יציאה
-            if (key = 83) { let activeObject = 1; } // S - בחירת חולצה
-            if (key = 72) { let activeObject = 2; } // H - בחירת היפופוטם
+            if (~(key = 0)) { // רק אם נלחץ מקש
+                do Screen.clearScreen();
 
-            // שליחת המקש לאובייקט הפעיל
-            if (activeObject = 1) {
-                do myShirt.handleKey(key);
-            } else {
-                do myHippo.handleKey(key);
+                // זיהוי המקש שנלחץ
+                if (key = 81) { let exit = true; }      // 'Q'
+                if (key = 83) { let activeObject = 1; } // 'S'
+                if (key = 72) { let activeObject = 2; } // 'H'
+
+                // הפעלת הפעולה על האובייקט הנבחר
+                if (activeObject = 1) {
+                    do myShirt.handleKey(key);
+                } else {
+                    do myHippo.handleKey(key);
+                }
+                
+                // ציור של שניהם מחדש כדי שאף אחד לא ייעלם
+                do myShirt.draw();
+                do myHippo.draw();
+
+                // הדפסת התפריט מחדש בשתי שורות (כי המסך נוקה)
+                do Output.moveCursor(0,0);
+                do Output.printString("S: Shirt, H: Hippo, R: Rotate");
+                do Output.println();
+                do Output.printString("Z/X: Change Size, Q: Quit");
+
+                // השהייה קטנה ומניעת ריצה מהירה של מקשים (למשל בסיבוב)
+                while (~(Keyboard.keyPressed() = 0)) {
+                    // מחכה עד שהמשתמש יעזוב את המקש
+                }
             }
-            
-            do Sys.wait(50); // השהייה למניעת ריצוד ומהירות תנועה סבירה
         }
 
-        // הדפסת סיכום פעילות בסיום (דרישת ה-Tracking)
-        do Screen.clearScreen();
-        do Output.moveCursor(10, 20);
-        do Output.printString("Final Summary:");
-        do Output.println();
-        do Output.moveCursor(12, 20);
-        do Output.printString("Shirt total actions: ");
-        do Output.printInt(myShirt.getActionCount());
-        do Output.println();
-        do Output.moveCursor(13, 20);
-        do Output.printString("Hippo total actions: ");
-        do Output.printInt(myHippo.getActionCount());
+        // ניקוי זיכרון בסיום
+        do myShirt.dispose();
+        do myHippo.dispose();
 
         return;
     }
