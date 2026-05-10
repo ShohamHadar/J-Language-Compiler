@@ -1,0 +1,55 @@
+/** Main.jack - מנהל את בחירת האובייקט, הלולאה הראשית והצגת סיכום הפעולות */
+class Main {
+    function void main() {
+        var char key;
+        var boolean exit;
+        var Shirt myShirt;
+        var Hippo myHippo;
+        var int activeObject; // 1 = Shirt, 2 = Hippo
+
+        let exit = false;
+        let activeObject = 1; // מתחילים עם החולצה
+        
+        // יצירת האובייקטים במיקומים שונים כדי שלא יעלו אחד על השני בהתחלה
+        let myShirt = Shirt.new(256, 128, 40); 
+        let myHippo = Hippo.new(100, 100, 20);
+
+        // הדפסת הוראות למשתמש
+        do Output.printString("S: Shirt, H: Hippo, R: Rotate");
+        do Output.println();
+        do Output.printString("Z/X: Change Size, Q: Quit");
+        do Output.println();
+
+        while (~exit) {
+            let key = Keyboard.keyPressed();
+
+            if (key = 81) { let exit = true; } // Q - יציאה
+            if (key = 83) { let activeObject = 1; } // S - בחירת חולצה
+            if (key = 72) { let activeObject = 2; } // H - בחירת היפופוטם
+
+            // שליחת המקש לאובייקט הפעיל
+            if (activeObject = 1) {
+                do myShirt.handleKey(key);
+            } else {
+                do myHippo.handleKey(key);
+            }
+            
+            do Sys.wait(50); // השהייה למניעת ריצוד ומהירות תנועה סבירה
+        }
+
+        // הדפסת סיכום פעילות בסיום (דרישת ה-Tracking)
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 20);
+        do Output.printString("Final Summary:");
+        do Output.println();
+        do Output.moveCursor(12, 20);
+        do Output.printString("Shirt total actions: ");
+        do Output.printInt(myShirt.getActionCount());
+        do Output.println();
+        do Output.moveCursor(13, 20);
+        do Output.printString("Hippo total actions: ");
+        do Output.printInt(myHippo.getActionCount());
+
+        return;
+    }
+}

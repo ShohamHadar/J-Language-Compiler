@@ -1,0 +1,89 @@
+/** Hippo class - לוגיקה זהה למחלקת Shirt עם 4 כיווני סיבוב */
+class Hippo {
+    field int x, y, size, actions, rotation;
+
+    constructor Hippo new(int Ax, int Ay, int Asize) {
+        let x = Ax;
+        let y = Ay;
+        let size = Asize;
+        let actions = 0;
+        let rotation = 0; // 0=ימין, 1=למטה, 2=שמאל, 3=למעלה
+        do draw();
+        return this;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawCircle(x, y, size);
+        if (rotation = 0) { // ימין
+            do Screen.drawRectangle(x + size - 5, y - (size/2), x + size + (size/2), y + (size/2));
+        }
+        if (rotation = 1) { // למטה
+            do Screen.drawRectangle(x - (size/2), y + size - 5, x + (size/2), y + size + (size/2));
+        }
+        if (rotation = 2) { // שמאל
+            do Screen.drawRectangle(x - size - (size/2), y - (size/2), x - size + 5, y + (size/2));
+        }
+        if (rotation = 3) { // למעלה
+            do Screen.drawRectangle(x - (size/2), y - size - (size/2), x + (size/2), y - size + 5);
+        }
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawCircle(x, y, size);
+        // מוחק את הראש לפי המיקום הנוכחי
+        if (rotation = 0) { do Screen.drawRectangle(x + size - 5, y - (size/2), x + size + (size/2), y + (size/2)); }
+        if (rotation = 1) { do Screen.drawRectangle(x - (size/2), y + size - 5, x + (size/2), y + size + (size/2)); }
+        if (rotation = 2) { do Screen.drawRectangle(x - size - (size/2), y - (size/2), x - size + 5, y + (size/2)); }
+        if (rotation = 3) { do Screen.drawRectangle(x - (size/2), y - size - (size/2), x + (size/2), y - size + 5); }
+        return;
+    }
+
+    method void handleKey(char key) {
+        if (key = 131) { do move(0, -5); } // Up
+        if (key = 133) { do move(0, 5); }  // Down
+        if (key = 130) { do move(-5, 0); } // Left
+        if (key = 132) { do move(5, 0); }  // Right
+        if (key = 82) { do rotate(); }     // R
+        if (key = 90) { do changeSize(2); } // Z
+        if (key = 88) { do changeSize(-2); } // X
+        return;
+    }
+
+    method void move(int dx, int dy) {
+        var int margin;
+        let margin = size + (size/2) + 5;
+        if (((x + dx - margin) > 0) & ((x + dx + margin) < 511) &
+            ((y + dy - margin) > 0) & ((y + dy + margin) < 255)) {
+            do erase();
+            let x = x + dx;
+            let y = y + dy;
+            let actions = actions + 1;
+            do draw();
+        }
+        return;
+    }
+
+    method void rotate() {
+        do erase();
+        let rotation = rotation + 1;
+        if (rotation = 4) { let rotation = 0; }
+        let actions = actions + 1;
+        do draw();
+        return;
+    }
+
+    method void changeSize(int delta) {
+        if (((size + delta) > 10) & ((size + delta) < 50)) {
+            do erase();
+            let size = size + delta;
+            let actions = actions + 1;
+            do draw();
+        }
+        return;
+    }
+
+    method int getActionCount() { return actions; }
+}

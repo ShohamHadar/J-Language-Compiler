@@ -1,0 +1,97 @@
+/** Shirt class - מייצגת חולצה עם 4 כיווני סיבוב ולוגיקת תנועה מאובטחת */
+class Shirt {
+    field int x, y, size, actions, rotation;
+
+    constructor Shirt new(int Ax, int Ay, int Asize) {
+        let x = Ax;
+        let y = Ay;
+        let size = Asize;
+        let actions = 0;
+        let rotation = 0; // 0=רגיל, 1=90, 2=180, 3=270
+        do draw();
+        return this;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        if ((rotation = 0) | (rotation = 2)) {
+            // מצב אנכי
+            do Screen.drawRectangle(x, y, x + size, y + (size + 10));
+            if (rotation = 0) { // שרוולים למעלה
+                do Screen.drawRectangle(x - (size/2), y, x, y + (size/3));
+                do Screen.drawRectangle(x + size, y, x + size + (size/2), y + (size/3));
+            } else { // שרוולים למטה
+                do Screen.drawRectangle(x - (size/2), y + size, x, y + size + (size/3));
+                do Screen.drawRectangle(x + size, y + size, x + size + (size/2), y + size + (size/3));
+            }
+        } else {
+            // מצב אופקי
+            do Screen.drawRectangle(x, y, x + (size + 10), y + size);
+            if (rotation = 1) { // שרוולים לימין
+                do Screen.drawRectangle(x + size, y - (size/2), x + size + (size/3), y);
+                do Screen.drawRectangle(x + size, y + size, x + size + (size/3), y + size + (size/2));
+            } else { // שרוולים לשמאל
+                do Screen.drawRectangle(x, y - (size/2), x + (size/3), y);
+                do Screen.drawRectangle(x, y + size, x + (size/3), y + size + (size/2));
+            }
+        }
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        // מחיקה לפי הלוגיקה של draw
+        if ((rotation = 0) | (rotation = 2)) {
+            do Screen.drawRectangle(x - (size/2), y - (size/2), x + size + (size/2), y + size + 20);
+        } else {
+            do Screen.drawRectangle(x - (size/2), y - (size/2), x + size + 20, y + size + (size/2));
+        }
+        return;
+    }
+
+    method void handleKey(char key) {
+        if (key = 131) { do move(0, -5); } // Up
+        if (key = 133) { do move(0, 5); }  // Down
+        if (key = 130) { do move(-5, 0); } // Left
+        if (key = 132) { do move(5, 0); }  // Right
+        if (key = 82) { do rotate(); }     // R
+        if (key = 90) { do changeSize(2); } // Z
+        if (key = 88) { do changeSize(-2); } // X
+        return;
+    }
+
+    method void move(int dx, int dy) {
+        var int margin;
+        let margin = size + 15;
+        if (((x + dx - margin) > 0) & ((x + dx + margin + 10) < 511) &
+            ((y + dy - margin) > 0) & ((y + dy + margin + 10) < 255)) {
+            do erase();
+            let x = x + dx;
+            let y = y + dy;
+            let actions = actions + 1;
+            do draw();
+        }
+        return;
+    }
+
+    method void rotate() {
+        do erase();
+        let rotation = rotation + 1;
+        if (rotation = 4) { let rotation = 0; }
+        let actions = actions + 1;
+        do draw();
+        return;
+    }
+
+    method void changeSize(int delta) {
+        if (((size + delta) > 10) & ((size + delta) < 50)) {
+            do erase();
+            let size = size + delta;
+            let actions = actions + 1;
+            do draw();
+        }
+        return;
+    }
+
+    method int getActionCount() { return actions; }
+}
