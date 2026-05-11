@@ -231,51 +231,11 @@ pop pointer 0
 push constant 0
 call Screen.setColor 1
 pop temp 0
-push this 4
-push constant 0
-eq
-push this 4
-push constant 2
-eq
-or
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
 push this 0
 push this 2
-push constant 2
-call Math.divide 2
 sub
 push this 1
 push this 2
-push constant 2
-call Math.divide 2
-sub
-push this 0
-push this 2
-add
-push this 2
-push constant 2
-call Math.divide 2
-add
-push this 1
-push this 2
-add
-push constant 20
-add
-call Screen.drawRectangle 4
-pop temp 0
-goto IF_END0
-label IF_FALSE0
-push this 0
-push this 2
-push constant 2
-call Math.divide 2
-sub
-push this 1
-push this 2
-push constant 2
-call Math.divide 2
 sub
 push this 0
 push this 2
@@ -285,13 +245,10 @@ add
 push this 1
 push this 2
 add
-push this 2
-push constant 2
-call Math.divide 2
+push constant 20
 add
 call Screen.drawRectangle 4
 pop temp 0
-label IF_END0
 push constant 0
 return
 function Shirt.handleKey 0
@@ -487,7 +444,7 @@ gt
 push this 2
 push argument 1
 add
-push constant 50
+push constant 60
 lt
 and
 if-goto IF_TRUE0
@@ -514,4 +471,12 @@ function Shirt.getActionCount 0
 push argument 0
 pop pointer 0
 push this 3
+return
+function Shirt.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
 return

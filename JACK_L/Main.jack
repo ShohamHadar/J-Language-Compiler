@@ -58,14 +58,28 @@ class Main {
 
                 // השהייה קטנה ומניעת ריצה מהירה של מקשים (למשל בסיבוב)
                 while (~(Keyboard.keyPressed() = 0)) {
-                    // מחכה עד שהמשתמש יעזוב את המקש
+                    do Sys.wait(50);
                 }
             }
         }
 
+         // הדפסת סיכום פעילות בסיום
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 20);
+        do Output.printString("Final Summary:");
+        do Output.println();
+        do Output.moveCursor(12, 20);
+        do Output.printString("Shirt total actions: ");
+        do Output.printInt(myShirt.getActionCount());
+        do Output.println();
+        do Output.moveCursor(13, 20);
+        do Output.printString("Hippo total actions: ");
+        do Output.printInt(myHippo.getActionCount());
+
         // ניקוי זיכרון בסיום
         do myShirt.dispose();
         do myHippo.dispose();
+
 
         return;
     }
