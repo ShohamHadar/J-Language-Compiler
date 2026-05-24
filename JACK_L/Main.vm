@@ -350,5 +350,11 @@ pop temp 0
 push local 3
 call Hippo.dispose 1
 pop temp 0
+push local 2
+call Shirt.dispose 1
+pop temp 0
+push local 3
+call Hippo.dispose 1
+pop temp 0
 push constant 0
 return
