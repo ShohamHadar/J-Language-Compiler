@@ -1,127 +1,204 @@
 load 'C:\Users\User\j9.6-user\temp\tar4part1.ijs'  NB. טעינת חלק א'
 
 NB. =========================================================================
-NB. משתנים גלובליים לניהול המפרסר (Parser)
-NB. =========================================================================
-tokens =: 0 2 $ <''  NB. יכיל את מטריצת הטוקנים של הקובץ הנוכחי
-pIdx =: 0            NB. המצביע (האינדקס) לטוקן הנוכחי שאנחנו מנתחים
-indent =: 0          NB. רמת ההזחה (מספר רווחים = indent * 2)
-outputFile =: ''     NB. נתיב לקובץ הפלט (למשל Main.xml)
-
-NB. =========================================================================
 NB. פונקציות עזר בסיסיות לניהול המצביע והכתיבה לקובץ
 NB. =========================================================================
 
-NB. פונקציית עזר לכתיבת שורה מוזחת לקובץ הפלט
 writeLine =: 3 : 0
   spaces =. (indent * 2) $ ' '
   (LF , spaces , y) fappend outputFile
 )
 
-NB. פונקציה שכותבת את הטוקן הנוכחי ומקדמת את המצביע לטוקן הבא
+NB. שליפה בטוחה ב-100% לפי השיטה שעבדה לך בחלק א'
+getCurrentTokenInfo =: 3 : 0
+  if. pIdx >= # tokens do. '' return. end.
+  row =. pIdx { tokens  NB. שליפת השורה כולה (מערך תיבות)
+  > y { row            NB. פתיחת התיבה (0 לסוג, 1 לערך)
+)
+
 writeCurrentToken =: 3 : 0
-  type =. > 0 { pIdx { tokens
-  val =. > 1 { pIdx { tokens
+  type =. getCurrentTokenInfo 0
+  val =. getCurrentTokenInfo 1
   
-  NB. יצירת השורה בפורמט: <type> val </type>
+  NB. מעקב קונסול גלוי לראות את הריצה
+  echo 'Writing Token: [' , type , '] -> ' , val
+  
   tagLine =. '<' , type , '> ' , val , ' </' , type , '>'
   writeLine tagLine
   
-  pIdx =: pIdx + 1  NB. קידום המצביע ב-1
-)
-
-NB. פונקציית עזר להצצה בטוקן הנוכחי (מחזירה זוג: סוג ; ערך) בלי לקדם את המצביע
-getCurrentToken =: 3 : 0
-  if. pIdx >= # tokens do. ('';'') return. end.
-  type =. > 0 { pIdx { tokens
-  val =. > 1 { pIdx { tokens
-  type ; val
+  pIdx =: pIdx + 1  NB. קידום המצביע
 )
 
 NB. =========================================================================
 NB. פונקציות הניתוח התחבירי (רכיבי הדקדוק של Jack)
 NB. =========================================================================
 
-NB. פונקציה לניתוח משתני מחלקה (static / field)
 compileClassVarDec =: 3 : 0
   writeLine '<classVarDec>'
   indent =: indent + 1
   
-  writeCurrentToken ''  NB. static או field
-  writeCurrentToken ''  NB. סוג המשתנה (int, char, וכו')
-  writeCurrentToken ''  NB. שם המשתנה הראשון
+  writeCurrentToken ''
+  writeCurrentToken ''
+  writeCurrentToken ''
   
-  NB. לולאה לטיפול במקרה שיש פסיקים (כמו: field int x, y, z;)
   while. 1 do.
-    'type val' =. getCurrentToken ''
-    if. val -: ',' do.
-      writeCurrentToken ''  NB. כתיבת הפסיק ,
-      writeCurrentToken ''  NB. כתיבת שם המשתנה הבא
+    nextVal =. getCurrentTokenInfo 1
+    if. nextVal -: ',' do.
+      writeCurrentToken ''  
+      writeCurrentToken ''  
     else.
       break.
     end.
   end.
   
-  writeCurrentToken ''  NB. כתיבת הנקודה פסיק ;
-  
+  writeCurrentToken ''  
   indent =: indent - 1
   writeLine '</classVarDec>'
 )
 
-NB. פונקציה לניתוח מבנה ה-Class החיצוני (כולל משתני מחלקה)
+compileParameterList =: 3 : 0
+  writeLine '<parameterList>'
+  indent =: indent + 1
+  
+  nextVal =. getCurrentTokenInfo 1
+  if. nextVal -. -: ')' do.
+    writeCurrentToken ''  
+    writeCurrentToken ''  
+    
+    while. 1 do.
+      nextVal =. getCurrentTokenInfo 1
+      if. nextVal -: ',' do.
+        writeCurrentToken ''  
+        writeCurrentToken ''  
+        writeCurrentToken ''  
+      else.
+        break.
+      end.
+    end.
+  end.
+  
+  indent =: indent - 1
+  writeLine '</parameterList>'
+)
+
+compileVarDec =: 3 : 0
+  writeLine '<varDec>'
+  indent =: indent + 1
+  
+  writeCurrentToken ''  NB. var
+  writeCurrentToken ''  NB. type
+  writeCurrentToken ''  NB. varName
+  
+  while. 1 do.
+    nextVal =. getCurrentTokenInfo 1
+    if. nextVal -: ',' do.
+      writeCurrentToken ''  
+      writeCurrentToken ''  
+    else.
+      break.
+    end.
+  end.
+  
+  writeCurrentToken ''  NB. ;
+  indent =: indent - 1
+  writeLine '</varDec>'
+)
+
+compileSubroutine =: 3 : 0
+  echo '>>> ENTERED compileSubroutine <<<'
+  writeLine '<subroutineDec>'
+  indent =: indent + 1
+  
+  writeCurrentToken ''  NB. function
+  writeCurrentToken ''  NB. void
+  writeCurrentToken ''  NB. main
+  writeCurrentToken ''  NB. (
+  
+  compileParameterList ''
+  
+  writeCurrentToken ''  NB. )
+  
+  writeLine '<subroutineBody>'
+  indent =: indent + 1
+  
+  writeCurrentToken ''  NB. {
+  
+  while. 1 do.
+    nextVal =. getCurrentTokenInfo 1
+    echo 'Checking inside subroutine body, next token is: ' , nextVal
+    if. nextVal -: 'var' do.
+      compileVarDec ''
+    else.
+      break.
+    end.
+  end.
+  
+  indent =: indent - 1
+  writeLine '</subroutineBody>'
+  
+  indent =: indent - 1
+  writeLine '</subroutineDec>'
+)
+
 compileClass =: 3 : 0
   writeLine '<class>'
   indent =: indent + 1
   
-  writeCurrentToken ''  NB. <keyword> class </keyword>
-  writeCurrentToken ''  NB. <identifier> Main </identifier>
-  writeCurrentToken ''  NB. <symbol> { </symbol>
+  writeCurrentToken ''  
+  writeCurrentToken ''  
+  writeCurrentToken ''  
   
-  NB. צעד 2: בדיקה בלולאה האם יש משתני מחלקה (static או field)
   while. 1 do.
-    'type val' =. getCurrentToken ''
-    if. (val -: 'static') +. (val -: 'field') do.
+    nextVal =. getCurrentTokenInfo 1
+    if. (nextVal -: 'static') +. (nextVal -: 'field') do.
       compileClassVarDec ''
     else.
-      break.  NB. אם זה לא static ולא field, סיימנו עם משתני המחלקה ונצא מהלולאה
+      break.
     end.
   end.
   
-  NB. (בצעדים הבאים נכניס כאן את הניתוח של פונקציות/מתודות)
+  while. 1 do.
+    nextVal =. getCurrentTokenInfo 1
+    echo 'Checking for subroutine, next token is: ' , nextVal
+    if. (nextVal -: 'constructor') +. (nextVal -: 'function') +. (nextVal -: 'method') do.
+      compileSubroutine ''
+    else.
+      break.
+    end.
+  end.
+  
+  writeCurrentToken ''  NB. } של ה-class
   
   indent =: indent - 1
   writeLine '</class>'
 )
 
 NB. =========================================================================
-NB. פונקציית הניהול הראשית - נקודת הכניסה של חלק ב'
+NB. פונקציית הניהול הראשית
 NB. =========================================================================
 parseCurrentFile =: 3 : 0
   filePath =. y
   dotIdx =. filePath i: '.'
   basePath =. dotIdx {. filePath
-  outputFile =: basePath , '.xml'  NB. קובץ הפלט של חלק ב' (Main.xml, בלי T!)
+  outputFile =: basePath , '.xml'
   
-  echo 'Parsing: ' , filePath , ' -> ' , outputFile
+  NB. הפעלת הפונקציה המקורית של חלק א' שמייצרת את tokensList בזיכרון
+  processTokenizer filePath  
   
-  NB. 1. הפעלת ה-Tokenizer מחלק א' ועדכון המטריצה הגלובלית
-  rawText =. freads filePath
-  cleanText =. removeComments rawText
-  tokens =: tokenizeText cleanText  
+  NB. חיבור ישיר למטריצה שעובדת ומלאה ב-100%
+  tokens =: tokensList  
   
-  NB. 2. איפוס המצביעים והכנת קובץ פלט נקי
-  pIdx =: 0
-  indent =: 0
+  echo 'Total rows (tokens) in matrix: ' , ": # tokens
+  
+  pIdx =: 0            
+  indent =: 0          
   '' fwrite outputFile  
   
-  NB. 3. תחילת הניתוח התחבירי מהרמה הגבוהה ביותר
   compileClass ''
   
-  echo 'Parsing Step 2 Complete!'
+  echo 'Parsing Step 4 Complete!'
 )
 
-NB. =========================================================================
-NB. הרצה ניסיונית על הקובץ הראשון (Main.jack)
-NB. =========================================================================
+NB. הרצה ישירה
 firstFile =. > 0 { jackFiles
 parseCurrentFile firstFile

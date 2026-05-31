@@ -5,46 +5,23 @@ NB. =========================================================================
 NB. הגדרות וקבועים עבור שפת Jack
 NB. =========================================================================
 
-NB. רשימת המילים השמורות בשפה [cite: 13]
 KEYWORDS =: 'class' ; 'constructor' ; 'function' ; 'method' ; 'field' ; 'static' ; 'var'
 KEYWORDS =: KEYWORDS , 'int' ; 'char' ; 'boolean' ; 'void' ; 'true' ; 'false' ; 'null' ; 'this'
 KEYWORDS =: KEYWORDS , 'let' ; 'do' ; 'if' ; 'else' ; 'while' ; 'return'
 
-NB. רשימת הסימנים המוכרים (תו אחר תו) [cite: 13]
 SYMBOLS =: '{'; '}'; '('; ')'; '['; ']'; '.'; ','; ';'; '+'; '-'; '*'; '/'; '&'; '|'; '<'; '>'; '='; '~'
 
-NB. קבוצה של כל הספרות מ-'0' עד '9'
 DIGITS =: (48 + i.10) { a.
-
-NB. קבוצה של כל האותיות (קטנות וגדולות) וקו תחתון [cite: 16]
 LETTERS =: ((65 + i.26) { a.) , ((97 + i.26) { a.) , '_'
-
-NB. קבוצה המשלבת אותיות, מספרים וקו תחתון (עבור המשך של מילה) [cite: 16]
 ALPHANUMERIC =: LETTERS , DIGITS
 
-
-NB. =========================================================================
-NB. נתיבים לקבצי הבדיקה [cite: 21]
-NB. =========================================================================
 searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ArrayTest\*.jack'
 jackFiles =: 1 dir searchPattern
 
-
-NB. =========================================================================
-NB. פונקציות עזר לניקוי ועיבוד ראשוני של הטקסט
-NB. =========================================================================
-
 isSymbol =: 3 : 'y e. SYMBOLS'
-
 isDigit =: 3 : 'y e. DIGITS'
-
-NB. בודקת האם תו בודד יכול להתחיל מילה (אות או מקף תחתון) [cite: 16]
 isLetter =: 3 : 'y e. LETTERS'
-
-NB. בודקת האם תו יכול להיות המשך של מילה (אות, ספרה או מקף תחתון) [cite: 16]
 isAlphaNumeric =: 3 : 'y e. ALPHANUMERIC'
-
-NB. בודקת האם המילה שצברנו היא מילה שמורה בשפה
 isKeyword =: 3 : 'y e. KEYWORDS'
 
 escapeXmlSymbol =: 3 : 0
@@ -60,51 +37,38 @@ removeComments =: 3 : 0
   txt =. y
   res =. ''
   i =. 0
-  
   while. i < # txt do.
     remainder =. i }. txt
-    
     if. '/*' -: 2 {. remainder do.
       matchIdx =. ('*/' E. remainder) i. 1
-      if. matchIdx = # remainder do.
-        i =. # txt
-      else.
-        i =. i + matchIdx + 2
-      end.
+      if. matchIdx = # remainder do. i =. # txt else. i =. i + matchIdx + 2 end.
       continue.
     end.
-    
     if. '//' -: 2 {. remainder do.
       endLine =. remainder i. LF
-      if. endLine = # remainder do.
-        i =. # txt
-      else.
-        i =. i + endLine
-      end.
+      if. endLine = # remainder do. i =. # txt else. i =. i + endLine end.
       continue.
     end.
-    
     res =. res , i { txt
     i =. i + 1
   end.
-  
   res
 )
 
-
 NB. =========================================================================
-NB. מנוע העיבוד הראשי - מעבר קובץ קובץ [cite: 8]
+NB. מנוע העיבוד הראשי - מעודכן לשמירת המטריצה בזיכרון!
 NB. =========================================================================
 processTokenizer =: 3 : 0
+  NB. יצירת/איפוס מטריצת הטוקנים הגלובלית
+  tokensList =: 0 2 $ <''
+
   for_file_path. y do.
     item =. > file_path
-    
     dotIndex =. item i: '.'
     basePath =. dotIndex {. item
     outputFile =. basePath , 'T.xml'
     
     echo 'Processing: ' , item , ' -> ' , outputFile
-    
     '<tokens>' fwrite outputFile
     
     rawText =. freads item
@@ -120,11 +84,15 @@ processTokenizer =: 3 : 0
         escapedCh =. escapeXmlSymbol ch
         xmlLine =. LF , '  <symbol> ' , escapedCh , ' </symbol>'
         xmlLine fappend outputFile
+        
+        NB. שמירה למטריצה (סוג ; ערך)
+        tokensList =: tokensList , ('symbol' ; ch)
+        
         idx =. idx + 1
         continue.
       end.
       
-      NB. 2. טיפול במספרים שלמים (integerConstant)
+      NB. 2. טיפול במספרים שלמים
       if. isDigit ch do.
         numStr =. ''
         while. idx < # cleanText do.
@@ -138,10 +106,13 @@ processTokenizer =: 3 : 0
         end.
         xmlLine =. LF , '  <integerConstant> ' , numStr , ' </integerConstant>'
         xmlLine fappend outputFile
+        
+        NB. שמירה למטריצה
+        tokensList =: tokensList , ('integerConstant' ; numStr)
         continue.
       end.
       
-      NB. 3. טיפול במחרוזות (stringConstant)
+      NB. 3. טיפול במחרוזות
       if. ch = '"' do.
         strText =. ''
         idx =. idx + 1
@@ -157,14 +128,15 @@ processTokenizer =: 3 : 0
         end.
         xmlLine =. LF , '  <stringConstant> ' , strText , ' </stringConstant>'
         xmlLine fappend outputFile
+        
+        NB. שמירה למטריצה
+        tokensList =: tokensList , ('stringConstant' ; strText)
         continue.
       end.
       
-      NB. 4. הצעד הסופי: טיפול במילים (Keywords ו-Identifiers) [cite: 16]
+      NB. 4. טיפול במילים (Keywords ו-Identifiers)
       if. isLetter ch do.
         wordStr =. ''
-        
-        NB. נאסוף את כל האותיות/מספרים/קו תחתון הרצופים [cite: 16]
         while. idx < # cleanText do.
           nextCh =. idx { cleanText
           if. isAlphaNumeric nextCh do.
@@ -175,27 +147,23 @@ processTokenizer =: 3 : 0
           end.
         end.
         
-        NB. נבדוק האם המילה שצברנו היא מילה שמורה או מזהה [cite: 16]
         if. isKeyword < wordStr do.
           xmlLine =. LF , '  <keyword> ' , wordStr , ' </keyword>'
+          tokensList =: tokensList , ('keyword' ; wordStr)
         else.
           xmlLine =. LF , '  <identifier> ' , wordStr , ' </identifier>'
+          tokensList =: tokensList , ('identifier' ; wordStr)
         end.
-        
         xmlLine fappend outputFile
         continue.
       end.
       
-      NB. אם הגענו לכאן, זה תו לבן (רווח, טאב, אנטר) - פשוט מתקדמים [cite: 14]
       idx =. idx + 1
     end.
-    
     (LF , '</tokens>' , LF) fappend outputFile
-    
   end.
-  
   echo 'Tokenizing Complete! All tokens generated successfully.'
 )
 
-NB. הרצת התהליך על קבצי ה-Jack שמצאנו [cite: 8]
+NB. הרצה ראשונית אוטומטית
 processTokenizer jackFiles
