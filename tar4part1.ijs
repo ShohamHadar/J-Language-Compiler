@@ -26,7 +26,7 @@ ALPHANUMERIC =: LETTERS , DIGITS
 NB. =========================================================================
 NB. נתיבים לקבצי הבדיקה [cite: 21]
 NB. =========================================================================
-searchPattern =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\10\ArrayTest\*.jack'
+searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ArrayTest\*.jack'
 jackFiles =: 1 dir searchPattern
 
 
