@@ -1,4 +1,6 @@
-load 'C:\Users\User\j9.6-user\temp\tar4part1.ijs'  NB. טעינת חלק א'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar4part1.ijs'  NB. טעינת חלק א'
+
+
 
 NB. =========================================================================
 NB. פונקציות עזר בסיסיות לניהול המצביע והכתיבה לקובץ
@@ -200,5 +202,5 @@ parseCurrentFile =: 3 : 0
 )
 
 NB. הרצה ישירה
-firstFile =. > 0 { jackFiles
+firstFile =. > 0 { jackFiles , a:
 parseCurrentFile firstFile
