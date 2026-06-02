@@ -2,7 +2,7 @@ load 'files'
 load 'dir'
 
 NB. =========================================================================
-NB. חלק א': הגדרות וקבועים עבור שפת Jack (ה-Tokenizer)
+NB. חלק א': הגדרות וקבועים עבור שפת Jack
 NB. =========================================================================
 
 KEYWORDS =: 'class' ; 'constructor' ; 'function' ; 'method' ; 'field' ; 'static' ; 'var'
@@ -190,7 +190,7 @@ closeTag =: 3 : 0
 writeTerminal =: 3 : 0
   type =. getCurrentType''
   val =. getCurrentValue''
-  if. 0 = # type do. return. end.
+  if. 0 = # type do. EMPTY return. end.
   
   displayVal =. val
   if. type -: 'symbol' do.
@@ -204,6 +204,37 @@ writeTerminal =: 3 : 0
   xmlLine =. (getIndent'') , '<' , type , '> ' , displayVal , ' </' , type , '>' , LF
   xmlLine fappend parsedFile
   advanceToken''
+  EMPTY
+)
+
+NB. פונקציות עזר פנימיות לניהול ובדיקת הטוקנים על בסיס האינדקס שלכן
+tokenIs =: 3 : 0
+  if. tokenIdx < # tokensList do. (getCurrentValue'') -: y else. 0 end.
+)
+
+nextTokenIs =: 3 : 0
+  nextIdx =. tokenIdx + 1
+  if. nextIdx < # tokensList do. (> 1 { nextIdx { tokensList) -: y else. 0 end.
+)
+
+isIdentifier =: 3 : 0
+  (getCurrentType'') -: 'identifier'
+)
+
+isOp =: 3 : 0
+  val =. getCurrentValue''
+  (val -: '+') +. (val -: '-') +. (val -: '*') +. (val -: '/') +. (val -: '&') +. (val -: '|') +. (val -: '<') +. (val -: '>') +. (val -: '=')
+)
+
+compileSubroutineCall =: 3 : 0
+  writeTerminal''  NB. subroutineName / className / varName
+  if. tokenIs '.' do.
+    writeTerminal''  NB. .
+    writeTerminal''  NB. subroutineName
+  end.
+  writeTerminal''  NB. (
+  compileExpressionList''
+  writeTerminal''  NB. )
   EMPTY
 )
 
@@ -230,23 +261,30 @@ compileClass =: 3 : 0
 
 compileClassVarDec =: 3 : 0
   openTag 'classVarDec'
-  while. tokenIdx < # tokensList do.
-    val =. getCurrentValue''
-    writeTerminal''
-    if. val -: ';' do. break. end.
+  writeTerminal''  NB. static / field
+  writeTerminal''  NB. type
+  writeTerminal''  NB. varName
+  
+  while. tokenIs ',' do.
+    writeTerminal''  NB. ,
+    writeTerminal''  NB. varName
   end.
+  
+  writeTerminal''  NB. ;
   closeTag 'classVarDec'
   EMPTY
 )
 
 compileSubroutineDec =: 3 : 0
   openTag 'subroutineDec'
-  writeTerminal'' 
-  writeTerminal'' 
-  writeTerminal'' 
-  writeTerminal'' 
+  writeTerminal''  NB. constructor / function / method
+  writeTerminal''  NB. void / type
+  writeTerminal''  NB. subroutineName
+  writeTerminal''  NB. (
+  
   compileParameterList''
-  writeTerminal'' 
+  writeTerminal''  NB. )
+  
   compileSubroutineBody''
   closeTag 'subroutineDec'
   EMPTY
@@ -254,9 +292,7 @@ compileSubroutineDec =: 3 : 0
 
 compileParameterList =: 3 : 0
   openTag 'parameterList'
-  while. tokenIdx < # tokensList do.
-    val =. getCurrentValue''
-    if. val -: ')' do. break. end.
+  while. -. tokenIs ')' do.
     writeTerminal''
   end.
   closeTag 'parameterList'
@@ -265,116 +301,121 @@ compileParameterList =: 3 : 0
 
 compileSubroutineBody =: 3 : 0
   openTag 'subroutineBody'
-  writeTerminal'' 
+  writeTerminal''  NB. {
   
-  while. tokenIdx < # tokensList do.
-    nextVal =. getCurrentValue''
-    if. nextVal -: 'var' do. compileVarDec'' else. break. end.
+  while. tokenIs 'var' do.
+    compileVarDec''
   end.
   
   compileStatements''
-  writeTerminal'' 
+  writeTerminal''  NB. }
   closeTag 'subroutineBody'
   EMPTY
 )
 
 compileVarDec =: 3 : 0
   openTag 'varDec'
-  while. tokenIdx < # tokensList do.
-    val =. getCurrentValue''
+  writeTerminal''  NB. var
+  writeTerminal''  NB. type
+  writeTerminal''  NB. varName
+  
+  while. -. tokenIs ';' do.
     writeTerminal''
-    if. val -: ';' do. break. end.
   end.
+  
+  writeTerminal''  NB. ;
   closeTag 'varDec'
   EMPTY
 )
 
 compileStatements =: 3 : 0
   openTag 'statements'
-  while. tokenIdx < # tokensList do.
-    val =. getCurrentValue''
-    if. val -: '}' do. break.
-    elseif. val -: 'let' do. compileLet''
-    elseif. val -: 'do' do. compileDo''
-    elseif. val -: 'return' do. compileReturn''
-    elseif. val -: 'while' do. compileWhile''
-    elseif. val -: 'if' do. compileIf''
-    else. writeTerminal''
+  
+  while. (tokenIs 'let') +. (tokenIs 'do') +. (tokenIs 'if') +. (tokenIs 'while') +. (tokenIs 'return') do.
+    if. tokenIs 'let' do. compileLet''
+    elseif. tokenIs 'do' do. compileDo''
+    elseif. tokenIs 'return' do. compileReturn''
+    elseif. tokenIs 'while' do. compileWhile''
+    elseif. tokenIs 'if' do. compileIf''
     end.
   end.
+  
   closeTag 'statements'
   EMPTY
 )
 
 compileLet =: 3 : 0
   openTag 'letStatement'
-  writeTerminal'' 
-  writeTerminal'' 
-  if. getCurrentValue'' -: '[' do.
-    writeTerminal'' 
+  writeTerminal''  NB. let
+  writeTerminal''  NB. varName
+  
+  if. tokenIs '[' do.
+    writeTerminal''  NB. [
     compileExpression''
-    writeTerminal'' 
+    writeTerminal''  NB. ]
   end.
-  writeTerminal'' 
+  
+  writeTerminal''  NB. =
   compileExpression''
-  writeTerminal'' 
+  writeTerminal''  NB. ;
   closeTag 'letStatement'
   EMPTY
 )
 
 compileDo =: 3 : 0
   openTag 'doStatement'
-  writeTerminal'' 
-  while. tokenIdx < # tokensList do.
-    val =. getCurrentValue''
-    if. val -: '(' do. break. end.
-    writeTerminal''
-  end.
-  writeTerminal'' 
-  compileExpressionList''
-  writeTerminal'' 
-  writeTerminal'' 
+  writeTerminal''  NB. do
+  compileSubroutineCall''
+  writeTerminal''  NB. ;
   closeTag 'doStatement'
   EMPTY
 )
 
 compileReturn =: 3 : 0
   openTag 'returnStatement'
-  writeTerminal'' 
-  if. (getCurrentValue'') -.@:-: ';' do. compileExpression'' end.
-  writeTerminal'' 
+  writeTerminal''  NB. return
+  
+  if. -. tokenIs ';' do.
+    compileExpression''
+  end.
+  
+  writeTerminal''  NB. ;
   closeTag 'returnStatement'
   EMPTY
 )
 
 compileWhile =: 3 : 0
   openTag 'whileStatement'
-  writeTerminal'' 
-  writeTerminal'' 
+  writeTerminal''  NB. while
+  writeTerminal''  NB. (
   compileExpression''
-  writeTerminal'' 
-  writeTerminal'' 
+  writeTerminal''  NB. )
+  writeTerminal''  NB. {
+  
   compileStatements''
-  writeTerminal'' 
+  writeTerminal''  NB. }
   closeTag 'whileStatement'
   EMPTY
 )
 
 compileIf =: 3 : 0
   openTag 'ifStatement'
-  writeTerminal'' 
-  writeTerminal'' 
+  writeTerminal''  NB. if
+  writeTerminal''  NB. (
   compileExpression''
-  writeTerminal'' 
-  writeTerminal'' 
+  writeTerminal''  NB. )
+  writeTerminal''  NB. {
+  
   compileStatements''
-  writeTerminal'' 
-  if. getCurrentValue'' -: 'else' do.
-    writeTerminal'' 
-    writeTerminal'' 
+  writeTerminal''  NB. }
+  
+  if. tokenIs 'else' do.
+    writeTerminal''  NB. else
+    writeTerminal''  NB. {
     compileStatements''
-    writeTerminal'' 
+    writeTerminal''  NB. }
   end.
+  
   closeTag 'ifStatement'
   EMPTY
 )
@@ -382,11 +423,12 @@ compileIf =: 3 : 0
 compileExpression =: 3 : 0
   openTag 'expression'
   compileTerm''
-  val =. getCurrentValue''
-  if. (val -: '+') +. (val -: '-') +. (val -: '*') +. (val -: '/') +. (val -: '=') +. (val -: '>') +. (val -: '<') do.
-    writeTerminal''
+  
+  while. isOp '' do.
+    writeTerminal''  NB. op
     compileTerm''
   end.
+  
   closeTag 'expression'
   EMPTY
 )
@@ -394,32 +436,49 @@ compileExpression =: 3 : 0
 compileTerm =: 3 : 0
   openTag 'term'
   type =. getCurrentType''
-  if. type -: 'identifier' do.
-    writeTerminal''
-    if. getCurrentValue'' e. '.', '[' do.
-      writeTerminal'' 
-      writeTerminal'' 
-      if. getCurrentValue'' -: '(' do.
-        writeTerminal'' 
-        compileExpressionList''
-        writeTerminal'' 
-      end.
+  val =. getCurrentValue''
+  
+  if. tokenIs '(' do.
+    writeTerminal''  NB. (
+    compileExpression''
+    writeTerminal''  NB. )
+    
+  elseif. (val -: '-') +. (val -: '~') do.
+    writeTerminal''  NB. אופרטור אונרי
+    compileTerm''
+    
+  elseif. isIdentifier '' do.
+    if. nextTokenIs '[' do.
+      writeTerminal''  NB. varName
+      writeTerminal''  NB. [
+      compileExpression''
+      writeTerminal''  NB. ]
+    elseif. (nextTokenIs '(') +. (nextTokenIs '.') do.
+      compileSubroutineCall''
+    else.
+      writeTerminal''  NB. משתנה פשוט
     end.
+    
   else.
-    writeTerminal''
+    writeTerminal''  NB. קבועים: integerConstant, stringConstant, keywordConstant
   end.
+  
   closeTag 'term'
   EMPTY
 )
 
 compileExpressionList =: 3 : 0
   openTag 'expressionList'
-  while. tokenIdx < # tokensList do.
-    val =. getCurrentValue''
-    if. val -: ')' do. break. end.
-    if. val -: ',' do. writeTerminal'' continue. end.
+  
+  if. -. tokenIs ')' do.
     compileExpression''
+    
+    while. tokenIs ',' do.
+      writeTerminal''  NB. ,
+      compileExpression''
+    end.
   end.
+  
   closeTag 'expressionList'
   EMPTY
 )
@@ -430,20 +489,17 @@ NB. =========================================================================
 compileAll =: 3 : 0
   targetFile =. y
   
-  NB. הפעלת ה-Tokenizer
   processTokenizer targetFile
   
-  NB. קביעת נתיב ה-XML המלא והמיושר
   parsedFile =: ((- # '.jack') }. targetFile) , '.xml'
   '' fwrite parsedFile
   
-  NB. הפעלת ה-Parser
   initParser''
   compileClass''
   
-  echo '=== SUCCESS! XML GENERATED COMPLIANT WITH PROJECT 10 ==='
+  echo '=== SUCCESS! XML GENERATED COMPLIANT WITH PROJECTS REQUIREMENTS ==='
   echo parsedFile
   EMPTY
 )
 
-compileAll 'C:\Users\ASUS\Desktop\nand2tetris\projects\10\ArrayTest\Main.jack'
+compileAll 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ArrayTest\Main.jack'
