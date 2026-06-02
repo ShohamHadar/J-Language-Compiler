@@ -383,26 +383,61 @@ compileExpressionList =: 3 : 0
 )
 
 NB. =========================================================================
-NB. פונקציית הקישור וההפעלה הסופית
+NB. פונקציית עזר לעיבוד קובץ בודד
 NB. =========================================================================
-compileAll =: 3 : 0
+compileSingleFile =: 3 : 0
   targetFile =. y
   
-  NB. הפעלה מקדימה של ה-Tokenizer לשם בניית מטריצת הטוקנים הגלובלית
+  NB. הפעלת ה-Tokenizer
   processTokenizer targetFile
   
-  NB. יצירת נתיב מוחלט עבור קובץ ה-XML התחבירי המיועד
+  NB. בניית שם קובץ הפלט (החלפת .jack ב- .xml)
   parsedFile =: ((- # '.jack') }. targetFile) , '.xml'
   '' fwrite parsedFile
   
-  NB. אתחול משתני המיקום והרצת פונקציית הגזירה הראשית
+  NB. הפעלת ה-Parser הרקורסיבי
   initParser''
   compileClass''
   
-  echo '=== SUCCESS! XML GENERATED WITH UNIQUE CUSTOM LOGIC ==='
-  echo parsedFile
+  echo 'Generated XML for: ' , parsedFile
   EMPTY
 )
 
-NB. קריאה להרצה
-compileAll 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ArrayTest\Main.jack'
+NB. =========================================================================
+NB. הפונקציה הראשית: JackAnalyzer
+NB. =========================================================================
+JackAnalyzer =: 3 : 0
+  source =. y
+  
+  NB. בדיקה האם המקור שקיבלנו הוא קובץ ג'אק בודד
+  if. '.jack' -: _5 {. source do.
+    compileSingleFile source
+  else.
+    NB. אם זו תיקייה - נדאג שהיא מסתיימת בלוכסן אחד ויחיד
+    folder =. source
+    if. '\' -.@:-: _1 {. folder do. folder =. folder , '\' end.
+    
+    
+    searchPattern =. folder , '*.jack'
+    jackFiles =. 1 dir searchPattern
+    
+    if. 0 = # jackFiles do.
+      echo 'Error: No .jack files found in directory: ' , folder
+      EMPTY return.
+    end.
+    
+    NB. לולאת ריצה על כל הקבצים שנמצאו בצורה דינמית 
+    for_file_path. jackFiles do.
+      fullPath =. > file_path
+      compileSingleFile fullPath
+    end.
+  end.
+  echo '=== ANALYSIS COMPLETED SUCCESSFULLY ==='
+  EMPTY
+)
+NB.===========================
+NB. קריאות להרצה, כל פעם לתיקיה אחרת
+NB.==========================
+JackAnalyzer 'C:\Users\User\nand2tetris\nand2tetris\projects\10\Square'
+NB.JackAnalyzer 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ArrayTest'
+NB.JackAnalyzer 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ExpressionlessSquare'
