@@ -108,15 +108,24 @@ initSubTable =: 3 : 0
   EMPTY
 )
 
+NB. הפונקציה שוכתבה במלואה כדי למנוע את באג האינדקס שמתחיל מ-1 במקום מ-0
 defineSymbol =: 4 : 0
   'name type kind' =. x
-  if. (kind -: 'static') +. (kind -: 'field') do.
-    if. kind -: 'static' do. idx =. staticIdx [ staticIdx =: staticIdx + 1
-    else. idx =. fieldIdx [ fieldIdx =: fieldIdx + 1 end.
+  if. kind -: 'static' do.
+    idx =. staticIdx
+    staticIdx =: staticIdx + 1
     classTab =: classTab , name ; type ; kind ; idx
-  else.
-    if. kind -: 'argument' do. idx =. argIdx [ argIdx =: argIdx + 1
-    else. idx =. varIdx [ varIdx =: varIdx + 1 end.
+  elseif. kind -: 'field' do.
+    idx =. fieldIdx
+    fieldIdx =: fieldIdx + 1
+    classTab =: classTab , name ; type ; kind ; idx
+  elseif. kind -: 'argument' do.
+    idx =. argIdx
+    argIdx =: argIdx + 1
+    subTab =: subTab , name ; type ; kind ; idx
+  elseif. kind -: 'var' do.
+    idx =. varIdx
+    varIdx =: varIdx + 1
     subTab =: subTab , name ; type ; kind ; idx
   end.
   EMPTY
@@ -198,7 +207,7 @@ writeReturn =: 3 : 0
 )
 
 NB. =========================================================================
-NB. חלק ד': Compilation Engine מוגן לחלוטין מתקיעות
+NB. חלק ד': Compilation Engine
 NB. =========================================================================
 
 tokenIdx =: 0
@@ -517,6 +526,7 @@ compileExpression =: 3 : 0
   EMPTY
 )
 
+NB. סדר הפקודות ב-true תוקן, ותוקן גם ה-false
 compileTerm =: 3 : 0
   type =. getCurrentType''
   val =. getCurrentValue''
@@ -534,9 +544,14 @@ compileTerm =: 3 : 0
     end.
     advanceToken''
   elseif. type -: 'keyword' do.
-    if. val -: 'true' do. writePush 'constant' ; 0 [ writeArithmetic 'not'
-    elseif. (val -: 'false') +. (val -: 'null') do. writePush 'constant' ; 0
-    elseif. val -: 'this' do. writePush 'pointer' ; 0 end.
+    if. val -: 'true' do. 
+      writePush 'constant' ; 0 
+      writeArithmetic 'not'
+    elseif. (val -: 'false') +. (val -: 'null') do. 
+      writePush 'constant' ; 0
+    elseif. val -: 'this' do. 
+      writePush 'pointer' ; 0 
+    end.
     advanceToken''
   elseif. type -: 'identifier' do.
     nextSym =. lookAheadValue 1
@@ -574,7 +589,6 @@ compileTerm =: 3 : 0
     compileTerm''
     if. val -: '-' do. writeArithmetic 'neg' else. writeArithmetic 'not' end.
   else.
-    NB. הגנת קריסה: אם הטוקן לא מוכר, נקדם אותו כוחנית כדי לא להיתקע לנצח בלולאה
     advanceToken'' 
   end.
   EMPTY
@@ -668,4 +682,6 @@ JackAnalyzer =: 3 : 0
   EMPTY
 )
 
-JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\Seven'
+NB. הרצת הקומפיילר
+JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\ConvertToBin'
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\Seven'
