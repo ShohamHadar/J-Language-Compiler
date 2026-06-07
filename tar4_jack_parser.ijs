@@ -1,5 +1,5 @@
 NB. טעינת ה-Tokenizer
-load 'C:\Users\User\j9.6-user\temp\tar4_jack_tokenizer.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar4_jack_tokenizer.ijs'
 
 NB. =========================================================================
 NB. חלק ב': המנתח התחבירי (Parser) 
@@ -438,6 +438,6 @@ JackAnalyzer =: 3 : 0
 NB.===========================
 NB. קריאות להרצה, כל פעם לתיקיה אחרת
 NB.==========================
-JackAnalyzer 'C:\Users\User\nand2tetris\nand2tetris\projects\10\Square'
-NB.JackAnalyzer 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ArrayTest'
-NB.JackAnalyzer 'C:\Users\User\nand2tetris\nand2tetris\projects\10\ExpressionlessSquare'
+JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\10\Square'
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\10\ArrayTest'
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\10\ExpressionlessSquare'
