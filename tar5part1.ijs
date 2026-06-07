@@ -683,5 +683,10 @@ JackAnalyzer =: 3 : 0
 )
 
 NB. הרצת הקומפיילר
-JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\ConvertToBin'
+JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\ComplexArrays'
+
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\Pong'
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\Average'
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\Square'
+NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\ConvertToBin'
 NB.JackAnalyzer 'C:\Users\ASUS\Desktop\nand2tetris\projects\11\Seven'
