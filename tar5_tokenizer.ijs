@@ -5,10 +5,10 @@ NB. תפקיד: לקרוא את קובץ ה-Jack, לנקות הערות, ולפ�
 NB. =========================================================================
 
 NB. הגדרת מילות המפתח והסימנים המותרים בשפת Jack
-KEYWORDS =: 'class' ; 'constructor' ; 'function' ; 'method' ; 'field' ; 'static' ; 'var'
+KEYWORDS =: 'class' ; 'constructor' ; 'function' ; 'method' ; 'field' ; 'static' ; 'var'; 'procedure' 
 KEYWORDS =: KEYWORDS , 'int' ; 'char' ; 'boolean' ; 'void' ; 'true' ; 'false' ; 'null' ; 'this'
 KEYWORDS =: KEYWORDS , 'let' ; 'do' ; 'if' ; 'else' ; 'while' ; 'return'
-SYMBOLS =: '{'; '}'; '('; ')'; '['; ']'; '.'; ','; ';'; '+'; '-'; '*'; '/'; '&'; '|'; '<'; '>'; '='; '~'
+SYMBOLS =: '{'; '}'; '('; ')'; '['; ']'; '.'; ','; ';'; '+'; '-'; '*'; '/'; '&'; '|'; '<'; '>'; '='; '~'; '$'
 
 NB. בניית קבוצות תווים באמצעות קוד ה-ASCII שלהם (a. הוא מערך ה-ASCII של J)
 DIGITS =: (48 + i.10) { a.                         

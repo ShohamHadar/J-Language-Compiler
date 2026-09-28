@@ -1,6 +1,6 @@
-load 'C:\Users\User\j9.6-user\temp\tar5_tokenizer.ijs'
-load 'C:\Users\User\j9.6-user\temp\tar5_symtable.ijs'
-load 'C:\Users\User\j9.6-user\temp\tar5_vmwriter.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar5_tokenizer.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar5_symtable.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar5_vmwriter.ijs'
 
 
 NB. =========================================================================
@@ -71,6 +71,9 @@ compileClass =: 3 : 0
     if. val -: 'constructor' do. compileSubroutineDec''
     elseif. val -: 'function' do. compileSubroutineDec''
     elseif. val -: 'method' do. compileSubroutineDec''
+    elseif. val -: 'procedure' do. compileSubroutineDec''  NB. שורת התמיכה החדשה
+    elseif. do. break. end.
+  end.
     elseif. do. break. end.
   end.
   
@@ -328,24 +331,24 @@ compileIf =: 3 : 0
   EMPTY
 )
 
-NB. הידור ביטויים (Expressions) המכילים איברים ואופרטורים (למשל x + y - z)
 compileExpression =: 3 : 0
   compileTerm''                                     NB. הידור האיבר הראשון (Term)
-  ops =. '+-*/&|<>='                                NB. רשימת האופרטורים המוכרים
+  ops =. '+-*/&|<>=$'                               NB. הוספת $ לרשימת האופרטורים
   while. tokenIdx < # tokensList do.
     isOp =. 0
     if. (getCurrentType'') -: 'symbol' do.
       if. (getCurrentValue'') e. ops do. isOp =. 1 end.
     end.
-    
+
     if. isOp = 0 do. break. end.                    NB. נעצר אם האסימון הבא אינו אופרטור
-    
+
     op =. getCurrentValue''
     advanceToken''
     compileTerm''                                   NB. הידור האיבר הבא (הימני)
-    
+
     NB. תרגום האופרטור של Jack לפקודת ה-VM המתאימה או קריאה לפונקציות מערכת של ה-OS
     if. op -: '+' do. writeArithmetic 'add'
+    elseif. op -: '$' do. writeArithmetic 'add'     NB. מימוש האופרטור החדש כפעולת פלוס
     elseif. op -: '-' do. writeArithmetic 'sub'
     elseif. op -: '*' do. writeCall 'Math.multiply' ; 2
     elseif. op -: '/' do. writeCall 'Math.divide' ; 2

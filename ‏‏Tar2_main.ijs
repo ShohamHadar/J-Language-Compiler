@@ -2,13 +2,13 @@ NB.main.ijs file
 load 'files'
 load 'dir'
 
-load 'C:\Users\User\j9.6-user\temp\Tar1_arithmetic.ijs'
-load 'C:\Users\User\j9.6-user\temp\Tar1_memory.ijs'
-load 'C:\Users\User\j9.6-user\temp\tar2_programflow.ijs'
-load 'C:\Users\User\j9.6-user\temp\tar2_functions.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\Tar1_arithmetic.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\Tar1_memory.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar2_programflow.ijs'
+load 'C:\Users\ASUS\Desktop\principles_of_programming_languages_J\tar2_functions.ijs'
 NB. עדכון נתיבים לתיקיית הפרויקט החדשה
-searchPattern =: 'C:\Users\User\nand2tetris\nand2tetris\projects\08\FunctionCalls\NestedCall\*.vm'
-outputFile =: 'C:\Users\User\nand2tetris\nand2tetris\projects\08\FunctionCalls\NestedCall\NestedCall.asm'
+searchPattern =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\8\FunctionCalls\FibonacciElement\*.vm'
+outputFile =: 'C:\Users\ASUS\Desktop\nand2tetris\projects\8\FunctionCalls\FibonacciElement.asm'
 '' fwrite outputFile
 
 NB.מחזיר רשימה של שמות הקבצים הרלוונטיים בתיקיה
